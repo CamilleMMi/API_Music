@@ -23,10 +23,6 @@ class Albums
     private ?string $name = null;
 
     #[Groups(["getAllAlbums", "getAlbums"])]
-    #[ORM\Column(length: 255)]
-    private ?string $author = null;
-
-    #[Groups(["getAllAlbums", "getAlbums"])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $date = null;
 
@@ -47,18 +43,6 @@ class Albums
     public function setName(string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getAuthor(): ?string
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(string $author): self
-    {
-        $this->author = $author;
 
         return $this;
     }
