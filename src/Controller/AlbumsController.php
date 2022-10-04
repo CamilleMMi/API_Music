@@ -40,8 +40,8 @@ class AlbumsController extends AbstractController
         return new JsonResponse($jsonAlbums, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/api/albums/delete/{idAlbums}', name: 'albums.delete', methods: ["DELETE"])]
-    #[ParamConverter("albums", option : ["id" => "idAlbums"])]
+    #[Route('/api/albums/{idAlbums}/remove', name: 'albums.delete', methods: ["DELETE"])]
+    #[ParamConverter("albums", options : ["id" => "idAlbums"])]
     public function deleteAlbums2(Albums $albums, EntityManagerInterface $entityManager): JsonResponse
     {
         $entityManager->remove($albums);
