@@ -3,15 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Albums;
-use App\Repository\AlbumsRepository;
 use Doctrine\ORM\EntityManager;
+use App\Repository\AlbumsRepository;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 class AlbumsController extends AbstractController
 {
@@ -57,5 +62,57 @@ class AlbumsController extends AbstractController
         $entityManager->flush();
         return new JsonResponse(null, Response::HTTP_OK, [], false);
     }
+
+    #[Route('/api/albums', name: 'albums.create', methods: ["POST"])]
+    public function createAlbums(Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
+    {
+        $albums = $serializer->deserialize(
+            $request->getContent(),
+            Albums::class,
+            'json'
+        );
+        $albums->setStatus(true);
+
+        $content = $request->toArray();
+        $music = $repository->find($content["idMusic"] ?? -1);
+        $albums->setMusics($music);
+
+        $entityManager->persist($albums);
+        $entityManager->flush();
+
+        $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => "getAlbums"]);
+        
+        $location = $urlGenerator->generate('albums.get', ['idAlbums' => $albums->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        
+        return new JsonResponse($jsonAlbums, Response::HTTP_CREATED, ["Location" => $location], true);
+    }
+
+    #[Route('/api/albums/{idAlbums}', name: 'albums.update', methods: ["PUT"])]
+    #[ParamConverter("albums", options : ["id" => "idAlbums"])]
+    public function updateAlbums(Albums $albums, Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
+    {
+        $updatealbums = $serializer->deserialize(
+            $request->getContent(),
+            Albums::class,
+            'json',
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $albums]
+        );
+        $updatealbums->setStatus(true);
+        
+
+        $content = $request->toArray();
+        $music = $repository->find($content["idMusic"] ?? -1);
+        $updatealbums->setMusics($music);
+
+        $entityManager->persist($albums);
+        $entityManager->flush();
+        
+        $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => "getAlbums"]);
+        
+        $location = $urlGenerator->generate('albums.get', ['idAlbums' => $albums->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        
+        return new JsonResponse($jsonAlbums, Response::HTTP_CREATED, ["Location" => $location], true);
+    }
+
     
 }
