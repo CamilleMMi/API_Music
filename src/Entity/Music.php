@@ -33,6 +33,9 @@ class Music
     #[ORM\ManyToMany(targetEntity: Genre::class)]
     private Collection $GenreId;
 
+    #[ORM\ManyToOne]
+    private ?Albums $albumsId = null;
+
     public function __construct()
     {
         $this->GenreId = new ArrayCollection();
@@ -99,6 +102,18 @@ class Music
     public function removeGenreId(Genre $genreId): self
     {
         $this->GenreId->removeElement($genreId);
+
+        return $this;
+    }
+
+    public function getAlbumsId(): ?Albums
+    {
+        return $this->albumsId;
+    }
+
+    public function setAlbumsId(?Albums $albumsId): self
+    {
+        $this->albumsId = $albumsId;
 
         return $this;
     }
