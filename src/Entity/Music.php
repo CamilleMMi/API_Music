@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\MusicRepository;
@@ -27,6 +29,14 @@ class Music
     #[ORM\Column]
     #[Groups(["getAllMusics", "getMusic"])]
     private ?bool $status = null;
+
+    #[ORM\ManyToMany(targetEntity: Genre::class)]
+    private Collection $GenreId;
+
+    public function __construct()
+    {
+        $this->GenreId = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -65,6 +75,30 @@ class Music
     public function setStatus(bool $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Genre>
+     */
+    public function getGenreId(): Collection
+    {
+        return $this->GenreId;
+    }
+
+    public function addGenreId(Genre $genreId): self
+    {
+        if (!$this->GenreId->contains($genreId)) {
+            $this->GenreId->add($genreId);
+        }
+
+        return $this;
+    }
+
+    public function removeGenreId(Genre $genreId): self
+    {
+        $this->GenreId->removeElement($genreId);
 
         return $this;
     }
