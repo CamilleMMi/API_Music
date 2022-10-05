@@ -50,10 +50,11 @@ class PictureController extends AbstractController
 
     #[Route('/api/picture/{idPicture}', name: 'get_picture', methods: ['GET'])]
     #[ParamConverter("picture", options: ["id" => "idPicture"])]
-    public function getPicture(Picture $picture, PictureRepository $repository, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function getPicture(Picture $picture, PictureRepository $repository, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, Request $request): JsonResponse
     {
         $RLlocation = $picture->getPublicPath() . '/' . $picture->getRealPath();
-        $location = $urlGenerator->generate('app_picture', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $location = $request->getUriForPath('/');
+        //$location = $urlGenerator->generate('app_picture', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $location = $location . str_replace('/assets', 'assets', $RLlocation);
 
         return new JsonResponse($serializer->serialize($picture, 'json', ["groups" => "getPicture"]), Response::HTTP_OK, ['Location' => $location], true);
