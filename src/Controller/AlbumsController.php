@@ -2,21 +2,22 @@
 
 namespace App\Controller;
 
+use DateTime;
 use App\Entity\Albums;
 use Doctrine\ORM\EntityManager;
 use App\Repository\AlbumsRepository;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class AlbumsController extends AbstractController
 {
@@ -89,7 +90,7 @@ class AlbumsController extends AbstractController
 
     #[Route('/api/albums/{idAlbums}', name: 'albums.update', methods: ["PUT"])]
     #[ParamConverter("albums", options : ["id" => "idAlbums"])]
-    public function updateAlbums(Albums $albums, Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function updateAlbums(Albums $albums, Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
         $updatealbums = $serializer->deserialize(
             $request->getContent(),
@@ -104,6 +105,11 @@ class AlbumsController extends AbstractController
         $music = $repository->find($content["idMusic"] ?? -1);
         $updatealbums->setMusics($music);
 
+        $errors = $validator->validate($albums);
+        if($errors->count() > 0)
+        {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
         $entityManager->persist($albums);
         $entityManager->flush();
         
