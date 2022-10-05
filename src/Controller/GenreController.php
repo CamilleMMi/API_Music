@@ -68,7 +68,7 @@ class GenreController extends AbstractController
      * @param SerializerInterface $serializer
      * @return JsonResponse
      */
-    #[Route('/api/genre/{idGenre}/remove', name: 'genre.deleteData', methods: ['DELETE'])]
+    //#[Route('/api/genre/{idGenre}/remove', name: 'genre.deleteData', methods: ['DELETE'])]
     #[ParamConverter("genre", options : ["id" => "idGenre"])]
     public function deleteDataGenre(EntityManagerInterface $entityManager, Genre $genre, SerializerInterface $serializer): JsonResponse
     {
