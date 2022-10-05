@@ -84,11 +84,28 @@ class PictureController extends AbstractController
      * @param Picture $picture
      * @return JsonResponse
      */
-    #[Route('/api/picture/{idPicture}', name: 'picture.turnoffStatus', methods: ['DELETE'])]
+    #[Route('/api/picture/{idPicture}', name: 'picture.turnOffStatus', methods: ['DELETE'])]
     #[ParamConverter("picture", options : ["id" => "idPicture"])]
     public function turnoffPicture(EntityManagerInterface $entityManager, Picture $picture): JsonResponse
     {
         $picture->setStatus(false);
+        $entityManager->flush();
+
+        return new JsonResponse(null, Response::HTTP_OK, [], false);
+    }
+
+    /**
+     * Set the status of the given picture to true
+     * 
+     * @param EntityManagerInterface $entityManager
+     * @param Picture $picture
+     * @return JsonResponse
+     */
+    #[Route('/api/picture/{idPicture}', name: 'picture.turnOnStatus', methods: ['POST'])]
+    #[ParamConverter("picture", options : ["id" => "idPicture"])]
+    public function turnonPicture(EntityManagerInterface $entityManager, Picture $picture): JsonResponse
+    {
+        $picture->setStatus(true);
         $entityManager->flush();
 
         return new JsonResponse(null, Response::HTTP_OK, [], false);
