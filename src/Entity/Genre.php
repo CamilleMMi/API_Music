@@ -5,6 +5,8 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\GenreRepository;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints\NotNull;
+use Symfony\Compenent\Validator\Constraint as Assert;
 
 #[ORM\Entity(repositoryClass: GenreRepository::class)]
 class Genre
@@ -17,6 +19,7 @@ class Genre
 
     #[ORM\Column(length: 255)]
     #[Groups(["getAllGenres", "getGenre"])]
+    #[Assert\NotNull(message: "A genre must have a name")]
     private ?string $GenreName = null;
 
     #[ORM\Column]

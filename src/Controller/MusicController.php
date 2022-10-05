@@ -3,13 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Music;
-use App\Repository\MusicRepository;
 use Doctrine\ORM\EntityManager;
+use App\Repository\MusicRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
@@ -88,5 +91,34 @@ class MusicController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse(null, Response::HTTP_OK, [], false);
+    }
+
+    #[Route('/api/music', name: 'music.create', methods: ['POST'])]
+    public function createMusic(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
+    {
+        $music = $serializer->deserialize(
+            $request->getContent(),
+            Music::class,
+            "json"
+        );
+        $music->setStatus(true);
+
+        // $content = $request->toArray();
+        // rajouter le repo de l'entité concerné
+        // $trucatrouver = $repoEnquestion->find($content['idDutruc'] ?? -1);
+        // $music->setAuthor($trucatrouver);
+
+        $error = $validator->validate($music);
+        if($error->count() > 0) {
+            return new JsonResponse($serializer->serialize($error, 'json'), Response::HTTP_BAD_REQUEST, [], true);
+        }
+
+        $entityManager->persist($music);
+        $entityManager->flush();
+
+        $jsonMusic = $serializer->serialize($music, "json", ['groups' => 'getMusic']);
+        $location = $urlGenerator->generate('music$music.get', ['idMusic' => $music->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        return new JsonResponse($jsonMusic, Response::HTTP_CREATED, ["location" => $location], true);
     }
 }

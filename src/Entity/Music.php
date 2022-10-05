@@ -34,6 +34,7 @@ class Music
     private Collection $GenreId;
 
     #[ORM\ManyToOne]
+    #[ORM\Column(nullable: true)]
     private ?Albums $albumsId = null;
 
     public function __construct()

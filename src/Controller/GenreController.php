@@ -85,9 +85,9 @@ class GenreController extends AbstractController
      * @param Genre $genre
      * @return JsonResponse
      */
-    #[Route('/api/genre/{idGenre}', name: 'genre.deleteStatus', methods: ['DELETE'])]
+    #[Route('/api/genre/{idGenre}', name: 'genre.turnoffStatus', methods: ['DELETE'])]
     #[ParamConverter("genre", options : ["id" => "idGenre"])]
-    public function deleteGenre(EntityManagerInterface $entityManager, Genre $genre): JsonResponse
+    public function turnoffGenre(EntityManagerInterface $entityManager, Genre $genre): JsonResponse
     {
         $genre->setStatus(false);
         $entityManager->flush();
@@ -104,11 +104,6 @@ class GenreController extends AbstractController
             "json"
         );
         $genre->setStatus(true);
-
-        // $content = $request->toArray();
-        // rajouter le repo de l'entité concerné
-        // $trucatrouver = $repoEnquestion->find($content['idDutruc'] ?? -1);
-        // $genre->setAuthor($trucatrouver);
 
         $error = $validator->validate($genre);
         if($error->count() > 0) {
