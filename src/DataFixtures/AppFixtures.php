@@ -7,10 +7,14 @@ use App\Entity\User;
 use Faker\Generator;
 use App\Entity\Genre;
 use App\Entity\Albums;
+use App\Entity\Authors;
+use App\Entity\Music;
+use DateTime;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\DocBlock\Tags\Author;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
@@ -36,6 +40,45 @@ public function __construct(UserPasswordHasherInterface $userPasswordHasher){
 
     public function load(ObjectManager $manager): void
     {
+
+        for ($i=0; $i < 5; $i++) { 
+           
+            $genre = new Genre();
+            $genre->setGenreName($this->faker->firstName())
+            ->setStatus(true);
+            $manager->persist($genre);
+            $manager->flush();
+        }
+
+        for ($i=0; $i < 5; $i++) { 
+           
+            $albums = new Albums();
+            $albums->setName($this->faker->firstName())
+            ->setDate(new DateTime())
+            ->setStatus(true);
+            $manager->persist($albums);
+            $manager->flush();
+        }
+
+        for ($i=0; $i < 5; $i++) { 
+           
+            $author = new Authors();
+            $author->setName($this->faker->firstName())
+            ->setStatus(true);
+            $manager->persist($author);
+            $manager->flush();
+        }
+
+        for ($i=0; $i < 5; $i++) { 
+           
+            $music = new Music();
+            $music->setMusicTitle($this->faker->firstName())
+            ->setReleased(new DateTime())
+            ->setStatus(true);
+            $manager->persist($music);
+            $manager->flush();
+        }
+        
         for ($i = 0; $i < 20; $i++) {
             $userUser = new User();
             $password = $this->faker->password(3,6);
