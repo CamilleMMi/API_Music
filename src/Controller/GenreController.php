@@ -95,6 +95,33 @@ class GenreController extends AbstractController
         return new JsonResponse(null, Response::HTTP_OK, [], false);
     }
 
+    /**
+     * Set the status of the given genre to true
+     * 
+     * @param EntityManagerInterface $entityManager
+     * @param Genre $genre
+     * @return JsonResponse
+     */
+    #[Route('/api/genre/{idGenre}', name: 'genre.turnOnStatus', methods: ['POST'])]
+    #[ParamConverter("genre", options : ["id" => "idGenre"])]
+    public function turnOnGenre(EntityManagerInterface $entityManager, Genre $genre): JsonResponse
+    {
+        $genre->setStatus(true);
+        $entityManager->flush();
+
+        return new JsonResponse(null, Response::HTTP_OK, [], false);
+    }
+
+    /**
+     * Creates a musical genre that can be linked to music
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
+     */
     #[Route('/api/genre', name: 'genre.create', methods: ['POST'])]
     public function createGenre(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
@@ -119,6 +146,16 @@ class GenreController extends AbstractController
         return new JsonResponse($jsonGenre, Response::HTTP_CREATED, ["location" => $location], true);
     }
 
+    /**
+     * Update the given genre
+     * 
+     * @param Genre $genre
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param UrlGeneratorInterface $urlGenerator
+     * @return JsonResponse
+     */
     #[Route('/api/genre/{idGenre}', name: 'genre.update', methods: ['PUT'])]
     #[ParamConverter("genre", options: ["id" => "idGenre"])]
     public function updateGenre(Genre $genre, Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse

@@ -93,6 +93,33 @@ class MusicController extends AbstractController
         return new JsonResponse(null, Response::HTTP_OK, [], false);
     }
 
+    /**
+     * Set the status of the given music to true
+     * 
+     * @param EntityManagerInterface $entityManager
+     * @param Music $music
+     * @return JsonResponse
+     */
+    #[Route('/api/music/{idMusic}', name: 'music.turnOnStatus', methods: ['POST'])]
+    #[ParamConverter("music", options : ["id" => "idMusic"])]
+    public function turnonMusic(EntityManagerInterface $entityManager, Music $music): JsonResponse
+    {
+        $music->setStatus(true);
+        $entityManager->flush();
+
+        return new JsonResponse(null, Response::HTTP_OK, [], false);
+    }
+
+    /**
+     * Create a music that will be link to an author 
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
+     */
     #[Route('/api/music', name: 'music.create', methods: ['POST'])]
     public function createMusic(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
