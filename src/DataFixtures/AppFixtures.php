@@ -92,7 +92,7 @@ public function __construct(UserPasswordHasherInterface $userPasswordHasher){
         for ($i = 0; $i < 1; $i++) {
             $userAdmin = new User();
             $userAdmin->setUsername("admin")
-            ->setRoles(["ADMIN"])
+            ->setRoles(["ROLE_ADMIN"])
             ->setPassword($this->userPasswordHasher->hashPassword($userAdmin, "password"));
             $manager->persist($userAdmin);
             $manager->flush();
