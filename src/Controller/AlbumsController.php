@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -31,6 +32,13 @@ class AlbumsController extends AbstractController
         ]);
     }
 
+    /**
+     * Return all the albums existing in the data base
+     *
+     * @param AlbumsRepository $repository
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/albums', name: 'albums.getAll', methods: ["GET"])]
     public function getAllAlbums(AlbumsRepository $repository, SerializerInterface $serializer): JsonResponse
     {
@@ -39,32 +47,80 @@ class AlbumsController extends AbstractController
         return new JsonResponse($jsonAlbums, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Return an album depending on the id given
+     * 
+     * @param Albums $albums
+     * @param 
+     */
     #[Route('/api/albums/{idAlbums}', name: 'albums.get', methods: ['GET'])]
     #[ParamConverter("albums",options : ['id' => 'idAlbums'])]
-    public function getAlbums(Albums $albums, AlbumsRepository $repository, SerializerInterface $serializer): JsonResponse
+    public function getAlbums(Albums $albums, SerializerInterface $serializer): JsonResponse
     {
         $jsonAlbums = $serializer->serialize($albums, 'json');
         return new JsonResponse($jsonAlbums, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-    #[Route('/api/albums/{idAlbums}/remove', name: 'albums.delete', methods: ["DELETE"])]
+    /**
+     * Remove entirely an album depending on the id given
+     *
+     * @param Albums $albums
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
+    // #[Route('/api/albums/{idAlbums}/remove', name: 'albums.delete', methods: ["DELETE"])]
     #[ParamConverter("albums", options : ["id" => "idAlbums"])]
-    public function deleteAlbums2(Albums $albums, EntityManagerInterface $entityManager): JsonResponse
+    public function deleteAlbums(Albums $albums, EntityManagerInterface $entityManager): JsonResponse
     {
         $entityManager->remove($albums);
         $entityManager->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
-    #[Route('/api/albums/{idAlbums}', name: 'albums.deleteStatus', methods: ["DELETE"])]
+    /**
+     * Set the status of the given album to false
+     * 
+     * @param EntityManagerInterface $entityManager
+     * @param Albums $albums
+     * @return JsonResponse
+     */
+    #[Route('/api/albums/{idAlbums}', name: 'albums.turnOffStatus', methods: ["DELETE"])]
     #[ParamConverter("albums", options : ["id" => "idAlbums"])]
-    public function deleteAlbums(Albums $albums, EntityManagerInterface $entityManager): JsonResponse
+    public function turnOffAlbums(Albums $albums, EntityManagerInterface $entityManager): JsonResponse
     {
         $albums->setStatus(false);
         $entityManager->flush();
         return new JsonResponse(null, Response::HTTP_OK, [], false);
     }
 
+    /**
+     * Set the status of the given album to true
+     * 
+     * @param EntityManagerInterface $entityManager
+     * @param Albums $albums
+     * @return JsonResponse
+     */
+    #[Route('/api/albums/{idAlbums}', name: 'albums.turnOnStatus', methods: ['DELETE'])]
+    #[IsGranted('ADMIN', message:'You do not have the correct role to access this service')]
+    #[ParamConverter("albums", options : ["id" => "idAlbums"])]
+    public function turnOnAlbums(EntityManagerInterface $entityManager, Albums $albums): JsonResponse
+    {
+        $albums->setStatus(true);
+        $entityManager->flush();
+
+        return new JsonResponse(null, Response::HTTP_OK, [], false);
+    }
+
+    /**
+     * Create an album with the given datas
+     *
+     * @param Request $request
+     * @param AlbumsRepository $repository
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param UrlGeneratorInterface $urlGenerator
+     * @return JsonResponse
+     */
     #[Route('/api/albums', name: 'albums.create', methods: ["POST"])]
     #[IsGranted("ADMIN", message:'LOL')]
     public function createAlbums(Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
@@ -90,6 +146,18 @@ class AlbumsController extends AbstractController
         return new JsonResponse($jsonAlbums, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
+    /**
+     * Update the album referenced by the id given
+     * 
+     * @param Request $request
+     * @param AlbumsRepository $repository
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param Albums $albums
+     * @param ValidatorInterface $validator
+     * @param UrlGeneratorInterface $urlGenerator
+     * @return JsonResponse
+     */
     #[Route('/api/albums/{idAlbums}', name: 'albums.update', methods: ["PUT"])]
     #[ParamConverter("albums", options : ["id" => "idAlbums"])]
     public function updateAlbums(Albums $albums, Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse

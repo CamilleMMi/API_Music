@@ -25,6 +25,15 @@ class PictureController extends AbstractController
         ]);
     }
 
+    /**
+     * Post the picture given in the request
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param UrlGeneratorInterface $urlGenerator
+     * @return JsonResponse
+     */
     #[Route('/api/picture', name: 'picture_create', methods: ['POST'])]
     public function createPicture(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
@@ -48,9 +57,16 @@ class PictureController extends AbstractController
         return new JsonResponse($jsonPicture, Response::HTTP_CREATED, ['Location' => $location], "json");
     }
 
+    /**
+     * Return the picture referenced by the id given on the request
+     * 
+     * @param Picture $picture
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     */
     #[Route('/api/picture/{idPicture}', name: 'get_picture', methods: ['GET'])]
     #[ParamConverter("picture", options: ["id" => "idPicture"])]
-    public function getPicture(Picture $picture, PictureRepository $repository, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator, Request $request): JsonResponse
+    public function getPicture(Picture $picture, SerializerInterface $serializer, Request $request): JsonResponse
     {
         $RLlocation = $picture->getPublicPath() . '/' . $picture->getRealPath();
         $location = $request->getUriForPath('/');
