@@ -10,9 +10,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PictureController extends AbstractController
 {
@@ -23,6 +24,24 @@ class PictureController extends AbstractController
             'message' => 'Welcome to your new controller!',
             'path' => 'src/Controller/PictureController.php',
         ]);
+    }
+    
+    /**
+     * Return all the pictures existing in the data base
+     *
+     * @param AlbumsRepository $repository
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
+    #[Route('/api/picutre$pictures', name: 'picutre$pictures.getAll', methods: ["GET"])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function getAllAlbums(Request $request, PictureRepository $repository, SerializerInterface $serializer): JsonResponse
+    {
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+        $pictures = $repository->findWithPagination($page, $limit);
+        $jsonAlbums = $serializer->serialize($pictures, 'json', ['groups' => 'getAllAlbums']);
+        return new JsonResponse($jsonAlbums, Response::HTTP_OK, [], true);
     }
 
     /**

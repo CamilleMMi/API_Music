@@ -35,12 +35,30 @@ class MusicController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/musics', name: 'all.musics', methods: ['GET'])]
-    public function getAllMusic(MusicRepository $repository, SerializerInterface $serializer): JsonResponse
+    public function getAllMusic(Request $request, MusicRepository $repository, SerializerInterface $serializer): JsonResponse
     {
-        $music = $repository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+        $music = $repository->findWithPagination($page, $limit);
         $jsonMusic = $serializer->serialize($music, 'json', ["groups" => "getAllMusics"]);
 
         return new JsonResponse($jsonMusic, Response::HTTP_OK, [], true);
+    }
+    
+    /**
+     * Return a random music
+     *
+     * @param Music $music
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
+    #[Route('/api/music/random', name: 'music.getRandom', methods: ['GET'])]
+    public function getRandomMusic(MusicRepository $repository, Music $music, SerializerInterface $serializer): JsonResponse
+    {
+        $music = $repository->findRandomMusic();
+        $jsonMusic = $serializer->serialize($music, 'json', ["groups" => "getAllMusics"]);
+
+        return new JsonResponse(Response::HTTP_OK, [], true);
     }
 
     /**

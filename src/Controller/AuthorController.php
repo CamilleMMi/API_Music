@@ -36,9 +36,11 @@ class AuthorsController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/authors', name: 'authors.getAll', methods: ["GET"])]
-    public function getAllAuthors(AuthorsRepository $repository, SerializerInterface $serializer): JsonResponse
+    public function getAllAuthors(Request $request, AuthorsRepository $repository, SerializerInterface $serializer): JsonResponse
     {
-        $authors = $repository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+        $authors = $repository->findWithPagination($page, $limit);
         $jsonAuthors = $serializer->serialize($authors, 'json', ['groups' => 'getAllAuthors']);
         return new JsonResponse($jsonAuthors, Response::HTTP_OK, [], true);
     }

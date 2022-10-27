@@ -39,9 +39,12 @@ class AlbumsController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/albums', name: 'albums.getAll', methods: ["GET"])]
-    public function getAllAlbums(AlbumsRepository $repository, SerializerInterface $serializer): JsonResponse
+    #[IsGranted('ROLE_ADMIN')]
+    public function getAllAlbums(Request $request, AlbumsRepository $repository, SerializerInterface $serializer): JsonResponse
     {
-        $albums = $repository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+        $albums = $repository->findWithPagination($page, $limit);
         $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => 'getAllAlbums']);
         return new JsonResponse($jsonAlbums, Response::HTTP_OK, [], true);
     }

@@ -37,9 +37,11 @@ class GenreController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/genres', name: 'all.genres', methods: ['GET'])]
-    public function getAllGenre(GenreRepository $repository, SerializerInterface $serializer): JsonResponse
+    public function getAllGenre(Request $request, GenreRepository $repository, SerializerInterface $serializer): JsonResponse
     {
-        $genre = $repository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+        $genre = $repository->findWithPagination($page, $limit);
         $jsonGenre = $serializer->serialize($genre, 'json', ["groups" => "getAllGenres"]);
 
         return new JsonResponse($jsonGenre, Response::HTTP_OK, [], true);

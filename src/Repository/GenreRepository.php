@@ -63,4 +63,13 @@ class GenreRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+    public function findWithPagination($page, $limit)
+    {
+        $qb = $this->createQueryBuilder("g")
+        ->where('g.status = 1')
+        ->setMaxResults($limit)
+        ->setFirstResult(($page - 1) * $limit);
+
+        return $qb->getQuery()->getResult();
+    }
 }

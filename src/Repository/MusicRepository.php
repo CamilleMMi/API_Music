@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Music;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\VarDumper\VarDumper;
 
 /**
  * @extends ServiceEntityRepository<Music>
@@ -63,4 +64,41 @@ class MusicRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+    public function findRandomMusic()
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $minId = $qb
+            ->select('MIN(music.id) AS id')
+            ->orderBy('music.id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $maxId = $qb
+            ->select('MAX(music.id) AS id')
+            ->orderBy('music.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+
+        $randomNumber = RAND($minId, $maxId);
+        $qb1 = $this->createQueryBuilder("m")
+            ->select('m')
+            ->where('m.id <> ?1')
+            ->andWhere('m.status = 1')
+            ->setMaxResults(1)
+            ->setFirstResult($randomNumber);
+        
+        return $qb1->getQuery()->getResult();
+    }
+
+    public function findWithPagination($page, $limit)
+    {
+        $qb = $this->createQueryBuilder("m")
+        ->where('m.status = 1')
+        ->setMaxResults($limit)
+        ->setFirstResult(($page - 1) * $limit);
+
+        return $qb->getQuery()->getResult();
+    }
 }
