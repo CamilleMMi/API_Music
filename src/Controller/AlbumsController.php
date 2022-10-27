@@ -7,6 +7,7 @@ use App\Entity\Albums;
 use Doctrine\ORM\EntityManager;
 use App\Repository\AlbumsRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -65,6 +66,7 @@ class AlbumsController extends AbstractController
     }
 
     #[Route('/api/albums', name: 'albums.create', methods: ["POST"])]
+    #[IsGranted("ADMIN", message:'LOL')]
     public function createAlbums(Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
         $albums = $serializer->deserialize(
