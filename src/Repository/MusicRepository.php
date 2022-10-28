@@ -66,26 +66,18 @@ class MusicRepository extends ServiceEntityRepository
 //    }
     public function findRandomMusic()
     {
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        $minId = $qb
-            ->select('MIN(music.id) AS id')
-            ->orderBy('music.id', 'ASC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getResult();
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        $maxId = $qb
-            ->select('MAX(music.id) AS id')
-            ->orderBy('music.id', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getResult();
+        $qb = $this->createQueryBuilder('m')
+        ->where('m.status = 1');
 
-        $randomNumber = RAND($minId, $maxId);
+        $qb ->select('count(m.id)');
+
+        $count = $qb->getQuery()->getSingleScalarResult();
+
+        $randomNumber = RAND(0, $count);
+        echo($randomNumber);
         $qb1 = $this->createQueryBuilder("m")
             ->select('m')
-            ->where('m.id <> ?1')
-            ->andWhere('m.status = 1')
+            ->where('m.status = 1')
             ->setMaxResults(1)
             ->setFirstResult($randomNumber);
         

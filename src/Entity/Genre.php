@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
+use Assert\NotNull;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\GenreRepository;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints\NotNull;
+use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
 use Symfony\Compenent\Validator\Constraint as Assert;
 
 #[ORM\Entity(repositoryClass: GenreRepository::class)]

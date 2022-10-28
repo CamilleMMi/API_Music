@@ -1,0 +1,15 @@
+1 1 Client, 1 Serveur
+2 Stateless
+3 Cache
+4 Auto-découvrabilité
+5 Layered
+6 Possibilité d'envoyer des petits morceaux de code
+
+ELEMENTS D'UNE API Returns
+
+1 Swamp of Pox
+2 Ressource
+3 HTTP Verbs
+4 HyperMedia Control
+
+RICHARDSON SCALE

@@ -13,12 +13,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Generator\UrlGenerator;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AlbumsController extends AbstractController
 {
@@ -40,14 +43,23 @@ class AlbumsController extends AbstractController
      */
     #[Route('/api/albums', name: 'albums.getAll', methods: ["GET"])]
     #[IsGranted('ROLE_ADMIN')]
-    public function getAllAlbums(Request $request, AlbumsRepository $repository, SerializerInterface $serializer): JsonResponse
+    public function getAllAlbums(Request $request, AlbumsRepository $repository, SerializerInterface $serializer, TagAwareCacheInterface $tagAware): JsonResponse
     {
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
         $albums = $repository->findWithPagination($page, $limit);
-        $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => 'getAllAlbums']);
+        $context = SerializationContext::create()->setGroups(['getAllAlbums']);
+        $jsonAlbums = $serializer->serialize($albums, 'json', $context);
         return new JsonResponse($jsonAlbums, Response::HTTP_OK, [], true);
     }
+
+    //jsonCours = $cache->get("getAllCOurses", function (ItemInterface $item ) use ($repository, $serializer)) {
+    //    $item->tag("CoursCache");
+    //    
+    //    echo "Mise en Cache";
+
+    //    $coyyurs = function
+    //}
 
     /**
      * Return an album depending on the id given
@@ -59,7 +71,8 @@ class AlbumsController extends AbstractController
     #[ParamConverter("albums",options : ['id' => 'idAlbums'])]
     public function getAlbums(Albums $albums, SerializerInterface $serializer): JsonResponse
     {
-        $jsonAlbums = $serializer->serialize($albums, 'json');
+        $context = SerializationContext::create()->setGroups(['getAlbums']);
+        $jsonAlbums = $serializer->serialize($albums, 'json', $context);
         return new JsonResponse($jsonAlbums, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
@@ -141,7 +154,8 @@ class AlbumsController extends AbstractController
         $entityManager->persist($albums);
         $entityManager->flush();
 
-        $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => "getAlbums"]);
+        $context = SerializationContext::create()->setGroups(['getAlbums']);
+        $jsonAlbums = $serializer->serialize($albums, 'json', $context);
         
         $location = $urlGenerator->generate('albums.get', ['idAlbums' => $albums->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
@@ -168,8 +182,11 @@ class AlbumsController extends AbstractController
             $request->getContent(),
             Albums::class,
             'json',
-            [AbstractNormalizer::OBJECT_TO_POPULATE => $albums]
         );
+        $content = $request->toArray();
+
+        $updatealbums->setDate($updatealbums->getDate() ?? $albums->getDate());
+        $updatealbums->setName($updatealbums->getName() ?? $albums->getName());
         $updatealbums->setStatus(true);
         
 
@@ -185,7 +202,8 @@ class AlbumsController extends AbstractController
         $entityManager->persist($albums);
         $entityManager->flush();
         
-        $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => "getAlbums"]);
+        $context = SerializationContext::create()->setGroups(['getAlbums']);
+        $jsonAlbums = $serializer->serialize($albums, 'json', $context);
         
         $location = $urlGenerator->generate('albums.get', ['idAlbums' => $albums->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
