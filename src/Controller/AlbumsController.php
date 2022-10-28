@@ -137,7 +137,7 @@ class AlbumsController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/albums', name: 'albums.create', methods: ["POST"])]
-    #[IsGranted("ADMIN", message:'LOL')]
+    #[IsGranted("ADMIN", message:'You do not have the correct role to access this service')]
     public function createAlbums(Request $request, AlbumsRepository $repository,EntityManagerInterface $entityManager, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
         $albums = $serializer->deserialize(
