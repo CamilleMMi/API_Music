@@ -7,8 +7,16 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\AlbumsRepository;
 // use Symfony\Component\Serializer\Annotation\Groups;
 use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Hateoas\Relation(
+ * "self",
+ * href= @Hateoas\Route("albums.get", parameters = { "idAlbums" = "expr(object.getId())" }), 
+ * exclusion = @Hateoas\Exclusion(groups="getAlbums")
+ * )
+ */
 #[ORM\Entity(repositoryClass: AlbumsRepository::class)]
 class Albums
 {
