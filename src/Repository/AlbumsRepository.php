@@ -2,9 +2,15 @@
 
 namespace App\Repository;
 
+use DateTime;
 use App\Entity\Albums;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use DateTimeImmutable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
+use phpDocumentor\Reflection\Types\Integer;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\DependencyInjection\Parameter;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Albums>
@@ -72,5 +78,30 @@ class AlbumsRepository extends ServiceEntityRepository
         ->setFirstResult(($page - 1) * $limit);
 
         return $qb->getQuery()->getResult();
+    }
+
+    public function findBetweenDates(DateTimeImmutable $startDate, DateTimeImmutable $endDate, int $page, int $limit) {
+        $startDate = $startDate ? $startDate : new DateTimeImmutable();
+        $qb = $this->createQueryBuilder("a");
+        $qb->add(
+            'where',
+            $qb->expr()->orX(
+                $qb->expr()->andX(
+                    $qb->expr()->gte("a.dateStart", ":startdate"),
+                    $qb->expr()->lte("a.dateStart", ":enddate")
+                ),
+                $qb->expr()->andX(
+                    $qb->expr()->gte("a.dateEnd", ":startdate"),
+                    $qb->expr()->lte("a.dateEnd", ":enddate")
+                )
+            )
+        )->setParameters(
+            new ArrayCollection(
+                [
+                    new Parameter('startdate', $startDate, Types::DATETIME_IMMUTABLE),
+                    new Parameter('enddate', $endDate, Types::DATETIME_IMMUTABLE)
+                ]
+            )
+        );
     }
 }

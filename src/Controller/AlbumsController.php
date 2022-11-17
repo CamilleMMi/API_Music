@@ -13,12 +13,17 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Generator\UrlGenerator;
-use Symfony\Component\Serializer\SerializerInterface;
+// use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AlbumsController extends AbstractController
 {
@@ -40,12 +45,16 @@ class AlbumsController extends AbstractController
      */
     #[Route('/api/albums', name: 'albums.getAll', methods: ["GET"])]
     #[IsGranted('ROLE_ADMIN')]
-    public function getAllAlbums(Request $request, AlbumsRepository $repository, SerializerInterface $serializer): JsonResponse
+    public function getAllAlbums(Request $request, AlbumsRepository $repository, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
         $albums = $repository->findWithPagination($page, $limit);
-        $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => 'getAllAlbums']);
+        $jsonAlbums = $cache->get("getAllAlbums", function (ItemInterface $item) use ($repository, $serializer) {
+            $item->tag("albumsCache");
+            
+        });
+        // $jsonAlbums = $serializer->serialize($albums, 'json', ['groups' => 'getAllAlbums']);
         return new JsonResponse($jsonAlbums, Response::HTTP_OK, [], true);
     }
 
