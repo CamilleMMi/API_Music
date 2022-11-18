@@ -10,7 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -42,7 +44,8 @@ class GenreController extends AbstractController
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
         $genre = $repository->findWithPagination($page, $limit);
-        $jsonGenre = $serializer->serialize($genre, 'json', ["groups" => "getAllGenres"]);
+        $context = SerializationContext::create()->setGroups(['getAllGenres']);
+        $jsonGenre = $serializer->serialize($genre, 'json', $context);
 
         return new JsonResponse($jsonGenre, Response::HTTP_OK, [], true);
     }
@@ -58,7 +61,8 @@ class GenreController extends AbstractController
     #[ParamConverter("genre", options : ["id"=> "idGenre"])]
     public function getGenreById(Genre $genre, SerializerInterface $serializer): JsonResponse
     {
-        $jsonGenre = $serializer->serialize($genre, 'json', ["groups" => "getGenre"]);
+        $context = SerializationContext::create()->setGroups(['getGenre']);
+        $jsonGenre = $serializer->serialize($genre, 'json', $context);
 
         return new JsonResponse($jsonGenre, Response::HTTP_OK, [], true);
     }
@@ -142,7 +146,7 @@ class GenreController extends AbstractController
         $entityManager->persist($genre);
         $entityManager->flush();
 
-        $jsonGenre = $serializer->serialize($genre, "json", ['groups' => 'getGenre']);
+        $jsonGenre = $serializer->serialize($genre, "json");
         $location = $urlGenerator->generate('genre.get', ['idGenre' => $genre->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return new JsonResponse($jsonGenre, Response::HTTP_CREATED, ["location" => $location], true);
@@ -166,13 +170,13 @@ class GenreController extends AbstractController
             $request->getContent(),
             Genre::class,
             "json",
-            [AbstractNormalizer::OBJECT_TO_POPULATE => $genre]
         );
         $genreUpdate->setStatus(true);
         $entityManager->persist($genreUpdate);
         $entityManager->flush();
 
-        $jsonGenre = $serializer->serialize($genreUpdate, 'json', ['groups' => 'getGenre']);
+        $context = SerializationContext::create()->setGroups(['getGenre']);
+        $jsonGenre = $serializer->serialize($genreUpdate, 'json', $context);
         $location = $urlGenerator->generate('genre.get', ['idGenre' => $genreUpdate->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return new JsonResponse($jsonGenre, Response::HTTP_CREATED, ["Location" => $location], true);

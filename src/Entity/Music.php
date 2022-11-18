@@ -7,8 +7,28 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\MusicRepository;
-use Symfony\Component\Serializer\Annotation\Groups;
-
+// use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
+/**
+ *  @Hateoas\Relation(
+ *      "self",
+ *      href= @Hateoas\Route(
+ *          "music.getOne",
+ *          parameters = { "idMusic" = "expr(object.getId())" }
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups="getMusic")
+ *  )
+ */
+/**
+ *  @Hateoas\Relation(
+ *      "self",
+ *      href= @Hateoas\Route(
+ *          "all.musics",
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups="getAllMusics")
+ *  )
+ */
 #[ORM\Entity(repositoryClass: MusicRepository::class)]
 class Music
 {
@@ -37,9 +57,13 @@ class Music
     #[ORM\Column(nullable: true)]
     private ?Albums $albumsId = null;
 
+    #[ORM\ManyToMany(targetEntity: Like::class, mappedBy: 'id_music')]
+    private Collection $islike;
+
     public function __construct()
     {
         $this->GenreId = new ArrayCollection();
+        $this->islike = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -115,6 +139,33 @@ class Music
     public function setAlbumsId(?Albums $albumsId): self
     {
         $this->albumsId = $albumsId;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Like>
+     */
+    public function getIslike(): Collection
+    {
+        return $this->islike;
+    }
+
+    public function addIslike(Like $islike): self
+    {
+        if (!$this->islike->contains($islike)) {
+            $this->islike->add($islike);
+            $islike->addIdMusic($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIslike(Like $islike): self
+    {
+        if ($this->islike->removeElement($islike)) {
+            $islike->removeIdMusic($this);
+        }
 
         return $this;
     }

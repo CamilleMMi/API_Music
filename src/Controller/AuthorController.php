@@ -3,13 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Authors;
+use JMS\Serializer\Serializer;
+use App\Repository\AlbumsRepository;
 use App\Repository\AuthorsRepository;
+use JMS\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use JMS\Serializer\SerializationContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -17,8 +20,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
-class AuthorsController extends AbstractController
+class AuthorController extends AbstractController
 {
+
     #[Route('/authors', name: 'app_author')]
     public function index(): JsonResponse
     {
@@ -41,7 +45,8 @@ class AuthorsController extends AbstractController
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
         $authors = $repository->findWithPagination($page, $limit);
-        $jsonAuthors = $serializer->serialize($authors, 'json', ['groups' => 'getAllAuthors']);
+        $context = SerializationContext::create()->setGroups(['getAllAuthors']);
+        $jsonAuthors = $serializer->serialize($authors, 'json', $context);
         return new JsonResponse($jsonAuthors, Response::HTTP_OK, [], true);
     }
 
@@ -55,7 +60,8 @@ class AuthorsController extends AbstractController
     #[ParamConverter("authors",options : ['id' => 'idAuthors'])]
     public function getAuthors(Authors $authors, SerializerInterface $serializer): JsonResponse
     {
-        $jsonAuthors = $serializer->serialize($authors, 'json');
+        $context = SerializationContext::create()->setGroups(['getAllAuthors']);
+        $jsonAuthors = $serializer->serialize($authors, 'json', $context);
         return new JsonResponse($jsonAuthors, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
@@ -136,7 +142,7 @@ class AuthorsController extends AbstractController
         $entityManager->persist($authors);
         $entityManager->flush();
 
-        $jsonAuthors = $serializer->serialize($authors, 'json', ['groups' => "getAuthors"]);
+        $jsonAuthors = $serializer->serialize($authors, 'json');
         
         $location = $urlGenerator->generate('authors.get', ['idAuthors' => $authors->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
@@ -157,20 +163,29 @@ class AuthorsController extends AbstractController
      */
     #[Route('/api/authors/{idAuthors}', name: 'authors.update', methods: ["PUT"])]
     #[ParamConverter("authors", options : ["id" => "idAuthors"])]
-    public function updateAuthors(Authors $authors, Request $request, AuthorsRepository $repository,EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function updateAuthors(Authors $authors, Request $request, AuthorsRepository $repository, AlbumsRepository $albumRepository, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
         $updateauthor = $serializer->deserialize(
             $request->getContent(),
             Authors::class,
             'json',
-            [AbstractNormalizer::OBJECT_TO_POPULATE => $authors]
         );
-        $updateauthor->setStatus(true);
-        
 
         $content = $request->toArray();
-        $music = $repository->find($content["idMusic"] ?? -1);
-        $updateauthor->setMusics($music);
+        $authors->setName($updateauthor->getName() ?? $authors->getName());
+        $authors->setStatus(true);
+
+        if(array_key_exists('idAuthors', $content) && $content["idAuthors"] && isset($content['idAuthors'])) {
+            dd($authors->addAlbumsid($albumRepository->find($updateauthor->getAlbumsid())));
+            
+            dd($content);
+            dd($authors->getAlbumsid());
+        }
+
+        $entityManager->persist($authors);
+        $entityManager->flush();
+
+        $content = $request->toArray();
 
         $errors = $validator->validate($authors);
         if($errors->count() > 0)
@@ -180,7 +195,7 @@ class AuthorsController extends AbstractController
         $entityManager->persist($authors);
         $entityManager->flush();
         
-        $jsonAuthors = $serializer->serialize($authors, 'json', ['groups' => "getAuthors"]);
+        $jsonAuthors = $serializer->serialize($authors, 'json');
         
         $location = $urlGenerator->generate('authors.get', ['idAuthors' => $authors->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         

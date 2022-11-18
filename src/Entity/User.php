@@ -3,7 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -26,6 +29,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\ManyToMany(targetEntity: Like::class, mappedBy: 'id_user')]
+    private Collection $isLike;
+
+    public function __construct()
+    {
+        $this->isLike = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -95,5 +106,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Like>
+     */
+    public function getIsLike(): Collection
+    {
+        return $this->isLike;
+    }
+
+    public function addIsLike(Like $isLike): self
+    {
+        if (!$this->isLike->contains($isLike)) {
+            $this->isLike->add($isLike);
+            $isLike->addIdUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIsLike(Like $isLike): self
+    {
+        if ($this->isLike->removeElement($isLike)) {
+            $isLike->removeIdUser($this);
+        }
+
+        return $this;
     }
 }

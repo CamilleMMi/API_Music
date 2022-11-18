@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\AuthorsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AuthorsRepository::class)]
@@ -13,15 +15,19 @@ class Authors
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getAuthors", "getAllAuthors"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["getAuthors", "getAllAuthors"])]
     private ?string $name = null;
 
     #[ORM\ManyToMany(targetEntity: Albums::class)]
+    #[Groups(["getAuthors"])]
     private Collection $albumsid;
 
     #[ORM\ManyToMany(targetEntity: Music::class)]
+    #[Groups(["getAuthors"])]
     private Collection $musicsId;
 
     #[ORM\Column]
@@ -50,7 +56,6 @@ class Authors
         return $this;
     }
 
-
     /**
      * @return Collection<int, Albums>
      */
@@ -63,8 +68,8 @@ class Authors
     {
         if (!$this->albumsid->contains($albumsid)) {
             $this->albumsid->add($albumsid);
-        }
 
+        }
         return $this;
     }
 

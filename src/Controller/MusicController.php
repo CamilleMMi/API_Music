@@ -10,7 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +42,8 @@ class MusicController extends AbstractController
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 10);
         $music = $repository->findWithPagination($page, $limit);
-        $jsonMusic = $serializer->serialize($music, 'json', ["groups" => "getAllMusics"]);
+        $context = SerializationContext::create()->setGroups(['getAllMusics']);
+        $jsonMusic = $serializer->serialize($music, 'json', $context);
 
         return new JsonResponse($jsonMusic, Response::HTTP_OK, [], true);
     }
@@ -53,12 +56,13 @@ class MusicController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/music/random', name: 'music.getRandom', methods: ['GET'])]
-    public function getRandomMusic(MusicRepository $repository, Music $music, SerializerInterface $serializer): JsonResponse
+    public function getRandomMusic(MusicRepository $repository, SerializerInterface $serializer): JsonResponse
     {
         $music = $repository->findRandomMusic();
-        $jsonMusic = $serializer->serialize($music, 'json', ["groups" => "getAllMusics"]);
+        $context = SerializationContext::create()->setGroups(['getMusic']);
+        $jsonMusic = $serializer->serialize($music, 'json', $context);
 
-        return new JsonResponse(Response::HTTP_OK, [], true);
+        return new JsonResponse($jsonMusic, Response::HTTP_OK, [], true);
     }
 
     /**
@@ -72,7 +76,8 @@ class MusicController extends AbstractController
     #[ParamConverter("music", options : ["id" => "idMusic"])]
     public function getMusicById(Music $music, SerializerInterface $serializer): JsonResponse
     {
-        $jsonMusic = $serializer->serialize($music, 'json', ["groups" => "getMusic"]);
+        $context = SerializationContext::create()->setGroups(['getMusic']);
+        $jsonMusic = $serializer->serialize($music, 'json', $context);
 
         return new JsonResponse($jsonMusic, Response::HTTP_OK, [], true);
     }
@@ -161,7 +166,7 @@ class MusicController extends AbstractController
         $entityManager->persist($music);
         $entityManager->flush();
 
-        $jsonMusic = $serializer->serialize($music, "json", ['groups' => 'getMusic']);
+        $jsonMusic = $serializer->serialize($music, "json");
         $location = $urlGenerator->generate('music$music.get', ['idMusic' => $music->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return new JsonResponse($jsonMusic, Response::HTTP_CREATED, ["location" => $location], true);
